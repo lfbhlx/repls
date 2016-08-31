@@ -13,19 +13,49 @@ var cache = {};
 var map = {};
 var modules = {};
 
+function dirLooper(dir,callback)
+{
+	var curDir = dir+'/';
+	var files = fs.readdirSync(dir);
+	for(var i in files)
+	{
+		var stat = fs.lstatSync(curDir + files[i]);
+		if(stat.isDirectory()){
+			dirLooper(curDir + files[i],callback);
+		}else{
+			callback(curDir + files[i]);
+		}
+	}
+}
+
 exports.extname = '.html';
-exports.sourcedir = './source/';
+exports.sourcedir = './source';
+exports.templatedir = './public';
 
 exports.isNeedProcess = function(absPath){
 	if(path.extname(absPath) == exports.extname) return true;
 	return false;
 };
 
-exports.addProjection = function(srcPath,proPath){
-	if(!proPath){
-		proPath = exports.sourcedir + path.basename(srcPath).replace(exports.extname,'.js');
-	}
-	map[srcPath] = eval(fs.readFileSync(proPath,'utf-8'));
+exports.preLoad = function(){
+	dirLooper(exports.sourcedir,function(absPath){
+		var sourcePath = absPath;
+		absPath = absPath.replace(exports.sourcedir,exports.templatedir);
+		absPath = absPath.replace(path.extname(absPath),exports.extname);
+		map[absPath] = eval(fs.readFileSync(sourcePath,'utf-8'));
+		
+		var transData = '';
+		transData += '(function(data){'+
+						'var __html__ = "";';
+		lineReader.eachLine(absPath , function(line,isLast){
+			transData += translate.translateRPLS(line);
+			if(isLast){
+				transData += 'return __html__;'+
+							'})(data);';
+				cache[absPath] = transData;
+			}
+		});
+	});
 };
 
 exports.addRequire = function(name,link){
@@ -36,39 +66,19 @@ exports.addRequire = function(name,link){
 	}
 };
 
-exports.process = function(absPath,req ,callback){
-	fs.exists(absPath, function(isExist){
-		if(isExist){
-			if(cache[absPath]){
-				map[absPath](req,function(data){
-					var html = eval(cache[absPath]);
-					callback(200,html);
-				});
-			}else{
-				var transData = '';
-				transData += '(function(data){'+
-								'var __html__ = "";';
-				lineReader.eachLine(absPath , function(line,isLast){
-					transData += translate.translateRPLS(line);
-					if(isLast){
-						transData += 'return __html__;'+
-									'})(data);';
-						//cache[absPath] = transData;
-						map[absPath](req , function(data){
-							var html = eval(transData);
-							callback(200, html);
-						});
-					}
-				});
-			}
-		}else{
-			callback(404,null);
-		}
-	});
+exports.process = function(absPath,req , resp, callback){
+	if(cache[absPath]){
+		map[absPath](req,resp,function(data){
+			var html = eval(cache[absPath]);
+			callback(200,html);
+		});
+	}else{
+		callback(404,null);
+	}
 };
 
 exports.handleRequest = function(absPath,req,resp){
-	exports.process(absPath,req , function(code,data){
+	exports.process(absPath,req ,resp , function(code,data){
 		if(code == 200){
 			resp.writeHead(code,{
 				'Content-Type':'text/html',
