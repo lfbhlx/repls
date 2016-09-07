@@ -1,8 +1,9 @@
 # repls A Template System
 
-1 . Before you use it ,you should download these source code and its dependence modules : line-reader . 
+##1 . Before you use it ,you should download these source code and its dependence modules : line-reader . 
 
-2 . You can use this system to build your web , like dynamic web , it can privide runtime data . The system have some tag to help you edit your text : 
+##2 . You can use this system to build your web , like dynamic web , it can privide runtime data . The system have some tag to help you edit your text : 
+    ```javascript
     <%= data.name %> : print privided data by yourself on the web page ; 
     <%each i in items %> ... <%each%> : loop through all data like Array or Object , and you can access every item between start tag and end tag;
     <%if predication %> ... [<%elseif predication %>] [<%else%>] ... <%if%> : this is a typical IF grammar;
@@ -54,32 +55,35 @@
       	<%case%>
       </body>
       </html>
-3 . How to inject your data to template?
-    You can provide the extname in var exports.extname , and it can let the system to recognize which file is the template file;
-    Each template file are mapping source file that you can give your own data; the source folder is given by var exports.sourcedir;
-    You must use this format to edit your source file :
+     ```
+##3 . How to inject your data to template?
+    You can provide the extname in var exports.extname , and it can let the system to recognize which file is the template file;\<br>
+    Each template file are mapping source file that you can give your own data; the source folder is given by var exports.sourcedir;\<br>
+    You must use this format to edit your source file :\<br>
+    ```javascript
       (function(){
         	return function(req,callback){
         		var data = {};
         		callback(data);
         	};
         })();
-      the callback function is given your data which is a ObjectMap;
-4 . How to use the system ? 
-    first : var rpls = require('./lib/rpls'); // require the module
-    second : use the function isNeedProcess to charge whether the file is a template file ,  if true , use the function process or function handleRequest to handle the template file ; 
-    third : edit the template file and the source file ;
-    forth : use the function addProjection to inject source file to template file , and use the function addRequire to require the modules which used in your source file;
-    fifth : you can use the modules in your source file like "moudules.xxx" ; 
-5 . APIs
-    exports.extname : tempalte file's extname by which can recognize the template file ; 
-    exports.sourcedir : source file's dictionary ; 
-    exports.isNeedProcess(absPath) : charge the file is a template file or not by file's pathname ;
-    exports.addProjection(srcPath,proPath) : mapping the souce file to template file ; 
-    exports.addRequire(name,link) : require the modules using in your source file;
-    exports.process(absPath,req ,callback) : process the template file , give pathname,request objec,callback function as arguments ;
-    exports.handleRequest(absPath,req,resp) : a simple handler ,you can use it or other modules even to build by yourself ;
-6 . Sample : 
+    ```
+      the callback function is given your data which is a ObjectMap;\<br>
+##4 . How to use the system ? 
+    first : var rpls = require('./lib/rpls'); // require the module\<br>
+    second : use the function isNeedProcess to charge whether the file is a template file ,  if true , use the function process or function handleRequest to handle the template file ; \<br>
+    third : edit the template file and the source file ;\<br>
+    forth : use the function addProjection to inject source file to template file , and use the function addRequire to require the modules which used in your source file;\<br>
+    fifth : you can use the modules in your source file like "moudules.xxx" ; \<br>
+##5 . APIs
+    ###exports.extname : tempalte file's extname by which can recognize the template file ; 
+    ###exports.sourcedir : source file's dictionary ; 
+    ###exports.isNeedProcess(absPath) : charge the file is a template file or not by file's pathname ;
+    ###exports.addProjection(srcPath,proPath) : mapping the souce file to template file ; 
+    ###exports.addRequire(name,link) : require the modules using in your source file;
+    ###exports.process(absPath,req ,callback) : process the template file , give pathname,request objec,callback function as arguments ;
+    ###exports.handleRequest(absPath,req,resp) : a simple handler ,you can use it or other modules even to build by yourself ;
+##6 . Sample : 
     working :  http://hello-stranger.cc:9999/
     source code : https://pan.baidu.com/s/1qYcowY4
     author email : 1203550038@qq.com
