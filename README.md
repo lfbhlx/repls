@@ -2,8 +2,8 @@
 
 ##1 . Before you use it ,you should download these source code and its dependence modules : line-reader . 
 
-##2 . You can use this system to build your web , like dynamic web , it can privide runtime data . The system have some tag to help you edit your text : 
-    ```javascript
+##2 . You can use this system to build your web , like dynamic web , it can privide runtime data . The system have some tag to help you edit your text :
+```javascript
     <%= data.name %> : print privided data by yourself on the web page ; 
     <%each i in items %> ... <%each%> : loop through all data like Array or Object , and you can access every item between start tag and end tag;
     <%if predication %> ... [<%elseif predication %>] [<%else%>] ... <%if%> : this is a typical IF grammar;
@@ -55,19 +55,19 @@
       	<%case%>
       </body>
       </html>
-     ```
+```
 ##3 . How to inject your data to template?
     You can provide the extname in var exports.extname , and it can let the system to recognize which file is the template file;\<br>
     Each template file are mapping source file that you can give your own data; the source folder is given by var exports.sourcedir;\<br>
     You must use this format to edit your source file :\<br>
-    ```javascript
+```javascript
       (function(){
         	return function(req,callback){
         		var data = {};
         		callback(data);
         	};
         })();
-    ```
+```
       the callback function is given your data which is a ObjectMap;\<br>
 ##4 . How to use the system ? 
     first : var rpls = require('./lib/rpls'); // require the module\<br>
@@ -84,6 +84,6 @@
     ###exports.process(absPath,req ,callback) : process the template file , give pathname,request objec,callback function as arguments ;
     ###exports.handleRequest(absPath,req,resp) : a simple handler ,you can use it or other modules even to build by yourself ;
 ##6 . Sample : 
-    working :  http://hello-stranger.cc:9999/
-    source code : https://pan.baidu.com/s/1qYcowY4
-    author email : 1203550038@qq.com
+    working :  http://hello-stranger.cc:9999/\<br>
+    source code : https://pan.baidu.com/s/1qYcowY4\<br>
+    author email : 1203550038@qq.com\<br>
