@@ -9,63 +9,74 @@ var sessionTimes = {};
 
 function Cookie(req,resp)
 {
-	this.option = {};
-	this.addCookie = function(key,value){
-		this[key] = value;
-		resp.setHeader('Set-Cookie',this.toString());
+	this.values = {};
+	this.options = {};
+	this.addCookie = function(key,value,option){
+		this.values[key] = value;
+		if(option) this.options[key] = option;
+		resp.setHeader('Set-Cookie',this.toArray());
+	};
+	this.getCookie = function(key){
+		return this.values[key];
 	};
 	this.removeCookie = function(key){
-		delete this[key];
-		resp.setHeader('Set-Cookie',this.toString());
+		delete this.values[key];
+		delete this.options[key];
+		resp.setHeader('Set-Cookie',this.toArray());
 	};
-	this.addOption = function(key,value){
-		this.option[key] = value;
-		resp.setHeader('Set-Cookie',this.toString());
+	this.addOption = function(key,optionkey,optionvalue){
+		if(!this.options[key]) this.options[key] = {};
+		this.options[key][optionkey] = optionvalue;
+		resp.setHeader('Set-Cookie',this.toArray());
 	};
-	this.setTime = function(time){
-		this.addOption('expires',new Date(new Date().getTime()+time*1000).toString().replace(/\([\w\W]*\)/, ''));
+	this.setTime = function(key,time){
+		this.addOption(key, 'expires', new Date(new Date().getTime()+time*1000).toString().replace(/\([\w\W]*\)/, ''));
 	};
-	this.toString = function(){
-		var cookieStr = '';
-		for(var key in this)
+	this.toArray = function(){
+		var retArr = [];
+		for(var key in this.values)
 		{
-			if(typeof this[key] != 'function' && typeof this[key] != 'object' ){
-				cookieStr += key + '=' + this[key] + '&';
+			var cookieStr = key + '=' + this.values[key];
+			if(this.options[key]){
+				for(var optkey in this.options[key])
+				{
+					if(this.options[key][optkey]){
+						cookieStr += ';'+optkey+'='+this.options[key][optkey];
+					}else{
+						cookieStr += ';'+optkey;
+					}
+				}
 			}
+			retArr.push(cookieStr);
 		}
-		cookieStr = cookieStr.substring(0, cookieStr.length-1);
-		for(var key in this.option)
-		{
-			if(this.option[key]){
-				cookieStr += ';'+key + '=' + this.option[key];
-			}else{
-				cookieStr += ';'+key;
-			}
-		}
-		return cookieStr;
+		return retArr;
 	};
-	var cookies = querystring.parse(req.headers.cookie)
+	var cookies = querystring.parse(req.headers.cookie,'; ');
 	for(var key in cookies)
 	{
-		this[key] = cookies[key];
+		if(cookies[key] instanceof Array){
+			cookies[key] = cookies[key][cookies[key].length-1];
+		}
+		this.values[key] = cookies[key];
 	}
-	resp.setHeader('Set-Cookie',this.toString());
+	resp.setHeader('Set-Cookie',this.toArray());
 }
 
 function Session(cookie)
 {
-	this.sessionId = cookie['__session__'];
+	this.sessionId = cookie.getCookie('__session__');
 	this.addSession = function(key,value){
 		this[key] = value;
 		if(this.sessionId && sessions[this.sessionId]){
 			sessions[this.sessionId][key] = value;
 			sessionTimes[this.sessionId] = new Date().getTime();
-			cookie.setTime(1500);
+			cookie.addOption('__session__','path','/');
+			cookie.setTime('__session__',1500);
 		}else{
 			this.sessionId = new Date().getTime();
 			cookie.addCookie('__session__',this.sessionId);
-			cookie.addOption('path','/');
-			cookie.setTime(1500);
+			cookie.addOption('__session__','path','/');
+			cookie.setTime('__session__',1500);
 			sessions[this.sessionId] = {};
 			sessions[this.sessionId][key] = value;
 			sessionTimes[this.sessionId] = new Date().getTime();
@@ -74,7 +85,8 @@ function Session(cookie)
 	this.getSession = function(key){
 		if(this.sessionId && sessions[this.sessionId]){
 			sessionTimes[this.sessionId] = new Date().getTime();
-			cookie.setTime(1500);
+			cookie.addOption('__session__','path','/');
+			cookie.setTime('__session__',1500);
 		}
 		return this[key];
 	};
@@ -83,7 +95,8 @@ function Session(cookie)
 			delete this[key];
 			delete sessions[this.sessionId][key];
 			sessionTimes[this.sessionId] = new Date().getTime();
-			cookie.setTime(1500);
+			cookie.addOption('__session__','path','/');
+			cookie.setTime('__session__',1500);
 		}
 	};
 	if(this.sessionId && sessions[this.sessionId]){
